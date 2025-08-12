@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Web Name Highlighter</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <h1>Web Name Highlighter</h1>
+  <section>
+    <h2>Upload Names</h2>
+    <input type="file" id="upload" accept=".csv" />
+    <label><input type="radio" name="mode" value="append" checked /> Append</label>
+    <label><input type="radio" name="mode" value="replace" /> Replace</label>
+    <button id="addName">Add Name</button>
+    <table id="names">
+      <thead>
+        <tr><th>First</th><th>Last</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="saveNames">Save Names</button>
+  </section>
+  <section>
+    <h2>Keywords</h2>
+    <input type="text" id="keyword" placeholder="keyword" />
+    <button id="addKeyword">Add</button>
+    <ul id="keywordList"></ul>
+  </section>
+  <script src="popup.js"></script>
+</body>
+</html>
