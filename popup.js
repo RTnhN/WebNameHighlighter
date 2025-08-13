@@ -1,4 +1,4 @@
-let currentNames = [];
+let currentNameGroups = [];
 let currentKeywords = [];
 let currentColors = { last: '#fff59d', full: '#90caf9', keyword: '#ffcc80' };
 
@@ -13,127 +13,123 @@ function dedupeNames(arr) {
   return Array.from(map.values());
 }
 
-function renderNames(names) {
-  const tbody = document.querySelector('#names tbody');
-  tbody.innerHTML = '';
-  names.forEach((n, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><input class="first" value="${n.first}"></td>` +
-                   `<td><input class="last" value="${n.last}"></td>` +
-                   `<td><button class="delete">x</button></td>`;
-    tr.querySelector('.delete').addEventListener('click', () => {
-      currentNames.splice(idx, 1);
-      renderNames(currentNames);
-      saveNamesToStorage();
+function renderGroups() {
+  const container = document.getElementById('groups');
+  container.innerHTML = '';
+  currentNameGroups.forEach((g, gIdx) => {
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.innerHTML = `
+      <div class="group-header">
+        <input class="group-name" value="${g.name}">
+        <button class="delete-group">x</button>
+      </div>
+      <table class="names">
+        <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="add-name">Add Name</button>
+    `;
+    const tbody = div.querySelector('tbody');
+    g.names.forEach((n, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input class="first" value="${n.first}"></td>` +
+                     `<td><input class="last" value="${n.last}"></td>` +
+                     `<td><button class="delete">x</button></td>`;
+      tr.querySelector('.delete').addEventListener('click', () => {
+        g.names.splice(idx, 1);
+        renderGroups();
+      });
+      tbody.appendChild(tr);
     });
-    tbody.appendChild(tr);
+    div.querySelector('.add-name').addEventListener('click', () => {
+      g.names.push({ first: '', last: '' });
+      renderGroups();
+    });
+    div.querySelector('.delete-group').addEventListener('click', () => {
+      currentNameGroups.splice(gIdx, 1);
+      renderGroups();
+    });
+    container.appendChild(div);
   });
 }
 
-function renderKeywords(list) {
+function addGroup() {
+  currentNameGroups.push({ name: '', names: [] });
+  renderGroups();
+}
+
+function saveGroups() {
+  const groups = [];
+  document.querySelectorAll('#groups .group').forEach(div => {
+    const name = div.querySelector('.group-name').value.trim();
+    const names = [];
+    div.querySelectorAll('tbody tr').forEach(row => {
+      const first = row.querySelector('.first').value.trim();
+      const last = row.querySelector('.last').value.trim();
+      if (first || last) names.push({ first, last });
+    });
+    if (name) {
+      groups.push({ name, names: dedupeNames(names) });
+    }
+  });
+  currentNameGroups = groups;
+  chrome.storage.local.set({ nameGroups: currentNameGroups });
+  renderGroups();
+}
+
+function renderKeywords() {
   const ul = document.getElementById('keywordList');
   ul.innerHTML = '';
-  list.forEach((word, index) => {
+  currentKeywords.forEach((word, idx) => {
     const li = document.createElement('li');
-    li.textContent = word;
-    const btn = document.createElement('button');
-    btn.textContent = 'x';
-    btn.addEventListener('click', () => {
-      currentKeywords.splice(index, 1);
-      saveKeywordsToStorage();
-      renderKeywords(currentKeywords);
+    li.innerHTML = `<input class="kw" value="${word}"> <button class="delete">x</button>`;
+    li.querySelector('.delete').addEventListener('click', () => {
+      currentKeywords.splice(idx, 1);
+      renderKeywords();
     });
-    li.appendChild(btn);
     ul.appendChild(li);
   });
+}
+
+function addKeyword() {
+  currentKeywords.push('');
+  renderKeywords();
+}
+
+function saveKeywords() {
+  const keywords = [];
+  document.querySelectorAll('#keywordList input.kw').forEach(input => {
+    const w = input.value.trim();
+    if (w && !keywords.some(k => k.toLowerCase() === w.toLowerCase())) {
+      keywords.push(w);
+    }
+  });
+  currentKeywords = keywords;
+  chrome.storage.local.set({ keywords: currentKeywords });
+  renderKeywords();
 }
 
 function saveColorsToStorage() {
   chrome.storage.local.set({ colors: currentColors });
 }
 
-function saveNamesToStorage() {
-  chrome.storage.local.set({ names: currentNames });
-}
-
-function saveKeywordsToStorage() {
-  chrome.storage.local.set({ keywords: currentKeywords });
-}
-
-function handleCSV(evt) {
-  const file = evt.target.files[0];
-  if (!file) return;
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
-    const parsed = [];
-    lines.forEach(line => {
-      const parts = line.split(',');
-      if (parts.length >= 2) {
-        const first = parts[0].trim();
-        const last = parts[1].trim();
-        if (first || last) parsed.push({ first, last });
-      }
-    });
-    const unique = dedupeNames(parsed);
-    if (mode === 'replace') {
-      currentNames = unique;
-    } else {
-      currentNames = dedupeNames(currentNames.concat(unique));
-    }
-    renderNames(currentNames);
-    saveNamesToStorage();
-    evt.target.value = '';
-  };
-  reader.readAsText(file);
-}
-
-function addKeyword() {
-  const input = document.getElementById('keyword');
-  const word = input.value.trim();
-  if (word && !currentKeywords.some(k => k.toLowerCase() === word.toLowerCase())) {
-    currentKeywords.push(word);
-    renderKeywords(currentKeywords);
-    saveKeywordsToStorage();
-  }
-  input.value = '';
-}
-
-function addName() {
-  currentNames.push({ first: '', last: '' });
-  renderNames(currentNames);
-}
-
-function saveNames() {
-  const rows = document.querySelectorAll('#names tbody tr');
-  const updated = [];
-  rows.forEach(row => {
-    const first = row.querySelector('.first').value.trim();
-    const last = row.querySelector('.last').value.trim();
-    if (first || last) updated.push({ first, last });
-  });
-  currentNames = dedupeNames(updated);
-  renderNames(currentNames);
-  saveNamesToStorage();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ names: [], keywords: [], colors: currentColors }, data => {
-    currentNames = data.names;
+  chrome.storage.local.get({ nameGroups: [], keywords: [], colors: currentColors }, data => {
+    currentNameGroups = data.nameGroups;
     currentKeywords = data.keywords;
     currentColors = data.colors;
-    renderNames(currentNames);
-    renderKeywords(currentKeywords);
+    renderGroups();
+    renderKeywords();
     document.getElementById('colorLast').value = currentColors.last;
     document.getElementById('colorFull').value = currentColors.full;
     document.getElementById('colorKeyword').value = currentColors.keyword;
   });
 
-  document.getElementById('upload').addEventListener('change', handleCSV);
+  document.getElementById('addGroup').addEventListener('click', addGroup);
+  document.getElementById('saveGroups').addEventListener('click', saveGroups);
   document.getElementById('addKeyword').addEventListener('click', addKeyword);
-  document.getElementById('addName').addEventListener('click', addName);
-  document.getElementById('saveNames').addEventListener('click', saveNames);
+  document.getElementById('saveKeywords').addEventListener('click', saveKeywords);
   document.getElementById('colorLast').addEventListener('input', e => {
     currentColors.last = e.target.value;
     saveColorsToStorage();

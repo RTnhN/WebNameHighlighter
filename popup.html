@@ -8,24 +8,16 @@
 <body>
   <h1>Web Name Highlighter</h1>
   <section>
-    <h2>Upload Names</h2>
-    <input type="file" id="upload" accept=".csv" />
-    <label><input type="radio" name="mode" value="append" checked /> Append</label>
-    <label><input type="radio" name="mode" value="replace" /> Replace</label>
-    <button id="addName">Add Name</button>
-    <table id="names">
-      <thead>
-        <tr><th>First</th><th>Last</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button id="saveNames">Save Names</button>
+    <h2>Name Groups</h2>
+    <div id="groups"></div>
+    <button id="addGroup">Add Group</button>
+    <button id="saveGroups">Save Groups</button>
   </section>
   <section>
     <h2>Keywords</h2>
-    <input type="text" id="keyword" placeholder="keyword" />
-    <button id="addKeyword">Add</button>
+    <button id="addKeyword">Add Keyword</button>
     <ul id="keywordList"></ul>
+    <button id="saveKeywords">Save Keywords</button>
   </section>
   <section>
     <h2>Colors</h2>

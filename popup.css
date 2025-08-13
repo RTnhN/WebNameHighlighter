@@ -28,3 +28,19 @@ section label {
   display: block;
   margin-top: 5px;
 }
+
+.group {
+  border: 1px solid #ccc;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.group-header input {
+  flex: 1;
+}
