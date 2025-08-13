@@ -15,12 +15,12 @@ th, td {
   padding: 4px;
 }
 
-#keywordList li {
+.kw-list li {
   list-style: none;
   margin: 2px 0;
 }
 
-#keywordList button, .delete {
+.kw-list button, .delete {
   margin-left: 5px;
 }
 
@@ -41,8 +41,12 @@ section label {
   margin-bottom: 5px;
 }
 
-.group-header input {
+.group-header .group-name {
   flex: 1;
+}
+
+.group-header .kw-color {
+  margin-left: 5px;
 }
 
 .csv-upload {

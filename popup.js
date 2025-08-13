@@ -1,6 +1,6 @@
 let currentNameGroups = [];
-let currentKeywords = [];
-let currentColors = { last: '#fff59d', full: '#90caf9', keyword: '#ffcc80' };
+let currentKeywordGroups = [];
+let currentColors = { last: '#fff59d', full: '#90caf9' };
 
 function dedupeNames(arr) {
   const map = new Map();
@@ -123,36 +123,70 @@ function saveGroups() {
   renderGroups();
 }
 
-function renderKeywords() {
-  const ul = document.getElementById('keywordList');
-  ul.innerHTML = '';
-  currentKeywords.forEach((word, idx) => {
-    const li = document.createElement('li');
-    li.innerHTML = `<input class="kw" value="${word}"> <button class="delete">x</button>`;
-    li.querySelector('.delete').addEventListener('click', () => {
-      currentKeywords.splice(idx, 1);
-      renderKeywords();
+function renderKeywordGroups() {
+  const container = document.getElementById('keywordGroups');
+  container.innerHTML = '';
+  currentKeywordGroups.forEach((g, gIdx) => {
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.innerHTML = `
+      <div class="group-header">
+        <input class="group-name" value="${g.name}">
+        <input type="color" class="kw-color" value="${g.color || '#ffcc80'}">
+        <button class="delete-group">x</button>
+      </div>
+      <ul class="kw-list"></ul>
+      <button class="add-keyword">Add Keyword</button>
+    `;
+    const ul = div.querySelector('.kw-list');
+    g.keywords.forEach((word, idx) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<input class="kw" value="${word}"> <button class="delete">x</button>`;
+      li.querySelector('.delete').addEventListener('click', () => {
+        g.keywords.splice(idx, 1);
+        renderKeywordGroups();
+      });
+      ul.appendChild(li);
     });
-    ul.appendChild(li);
+    div.querySelector('.add-keyword').addEventListener('click', () => {
+      g.keywords.push('');
+      renderKeywordGroups();
+    });
+    div.querySelector('.kw-color').addEventListener('input', e => {
+      g.color = e.target.value;
+    });
+    div.querySelector('.delete-group').addEventListener('click', () => {
+      currentKeywordGroups.splice(gIdx, 1);
+      renderKeywordGroups();
+    });
+    container.appendChild(div);
   });
 }
 
-function addKeyword() {
-  currentKeywords.push('');
-  renderKeywords();
+function addKeywordGroup() {
+  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80' });
+  renderKeywordGroups();
 }
 
-function saveKeywords() {
-  const keywords = [];
-  document.querySelectorAll('#keywordList input.kw').forEach(input => {
-    const w = input.value.trim();
-    if (w && !keywords.some(k => k.toLowerCase() === w.toLowerCase())) {
-      keywords.push(w);
+function saveKeywordGroups() {
+  const groups = [];
+  document.querySelectorAll('#keywordGroups .group').forEach(div => {
+    const name = div.querySelector('.group-name').value.trim();
+    const color = div.querySelector('.kw-color').value;
+    const keywords = [];
+    div.querySelectorAll('.kw-list input.kw').forEach(input => {
+      const w = input.value.trim();
+      if (w && !keywords.some(k => k.toLowerCase() === w.toLowerCase())) {
+        keywords.push(w);
+      }
+    });
+    if (name) {
+      groups.push({ name, keywords, color });
     }
   });
-  currentKeywords = keywords;
-  chrome.storage.local.set({ keywords: currentKeywords });
-  renderKeywords();
+  currentKeywordGroups = groups;
+  chrome.storage.local.set({ keywordGroups: currentKeywordGroups });
+  renderKeywordGroups();
 }
 
 function saveColorsToStorage() {
@@ -160,31 +194,26 @@ function saveColorsToStorage() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ nameGroups: [], keywords: [], colors: currentColors }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], colors: currentColors }, data => {
     currentNameGroups = data.nameGroups;
-    currentKeywords = data.keywords;
+    currentKeywordGroups = data.keywordGroups;
     currentColors = data.colors;
     renderGroups();
-    renderKeywords();
+    renderKeywordGroups();
     document.getElementById('colorLast').value = currentColors.last;
     document.getElementById('colorFull').value = currentColors.full;
-    document.getElementById('colorKeyword').value = currentColors.keyword;
   });
 
   document.getElementById('addGroup').addEventListener('click', addGroup);
   document.getElementById('saveGroups').addEventListener('click', saveGroups);
-  document.getElementById('addKeyword').addEventListener('click', addKeyword);
-  document.getElementById('saveKeywords').addEventListener('click', saveKeywords);
+  document.getElementById('addKeywordGroup').addEventListener('click', addKeywordGroup);
+  document.getElementById('saveKeywordGroups').addEventListener('click', saveKeywordGroups);
   document.getElementById('colorLast').addEventListener('input', e => {
     currentColors.last = e.target.value;
     saveColorsToStorage();
   });
   document.getElementById('colorFull').addEventListener('input', e => {
     currentColors.full = e.target.value;
-    saveColorsToStorage();
-  });
-  document.getElementById('colorKeyword').addEventListener('input', e => {
-    currentColors.keyword = e.target.value;
     saveColorsToStorage();
   });
 });

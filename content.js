@@ -82,7 +82,7 @@ function walkAndHighlight(regex, color, className, groupName) {
 }
 
 function refreshHighlights() {
-  chrome.storage.local.get({ nameGroups: [], keywords: [], colors: DEFAULT_COLORS }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], colors: DEFAULT_COLORS }, data => {
     clearHighlights();
 
     data.nameGroups.forEach(group => {
@@ -106,19 +106,21 @@ function refreshHighlights() {
       }
     });
 
-    const keywordSet = new Set();
-    data.keywords.forEach(k => keywordSet.add(k.toLowerCase()));
-    const regexKeyword = buildRegex(keywordSet);
-    if (regexKeyword) {
-      walkAndHighlight(regexKeyword, data.colors.keyword || DEFAULT_COLORS.keyword, HIGHLIGHT_CLASSES.keyword, 'Keyword');
-    }
+    data.keywordGroups.forEach(group => {
+      const keywordSet = new Set();
+      group.keywords.forEach(k => keywordSet.add(k.toLowerCase()));
+      const regexKeyword = buildRegex(keywordSet);
+      if (regexKeyword) {
+        walkAndHighlight(regexKeyword, group.color || DEFAULT_COLORS.keyword, HIGHLIGHT_CLASSES.keyword, group.name);
+      }
+    });
   });
 }
 
 refreshHighlights();
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && (changes.nameGroups || changes.keywords || changes.colors)) {
+  if (area === 'local' && (changes.nameGroups || changes.keywordGroups || changes.colors)) {
     refreshHighlights();
   }
 });
