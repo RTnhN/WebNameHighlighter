@@ -13,33 +13,26 @@ function dedupeNames(arr) {
   return Array.from(map.values());
 }
 
-function handleCSVUpload(evt) {
-  const file = evt.target.files[0];
+function handleGroupCSVUpload(gIdx, input) {
+  const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
     lines.forEach(line => {
       const parts = line.split(',');
-      if (parts.length >= 3) {
-        const groupName = parts[0].trim();
-        const first = parts[1].trim();
-        const last = parts[2].trim();
-        if (!groupName || (!first && !last)) return;
-        let group = currentNameGroups.find(g => g.name.toLowerCase() === groupName.toLowerCase());
-        if (!group) {
-          group = { name: groupName, names: [] };
-          currentNameGroups.push(group);
+      if (parts.length >= 2) {
+        const first = parts[0].trim();
+        const last = parts[1].trim();
+        if (first || last) {
+          currentNameGroups[gIdx].names.push({ first, last });
         }
-        group.names.push({ first, last });
       }
     });
-    currentNameGroups.forEach(g => {
-      g.names = dedupeNames(g.names);
-    });
+    currentNameGroups[gIdx].names = dedupeNames(currentNameGroups[gIdx].names);
     chrome.storage.local.set({ nameGroups: currentNameGroups });
     renderGroups();
-    evt.target.value = '';
+    input.value = '';
   };
   reader.readAsText(file);
 }
@@ -55,6 +48,7 @@ function renderGroups() {
         <input class="group-name" value="${g.name}">
         <button class="delete-group">x</button>
       </div>
+      <input type="file" class="csv-upload" accept=".csv" />
       <table class="names">
         <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
         <tbody></tbody>
@@ -80,6 +74,9 @@ function renderGroups() {
     div.querySelector('.delete-group').addEventListener('click', () => {
       currentNameGroups.splice(gIdx, 1);
       renderGroups();
+    });
+    div.querySelector('.csv-upload').addEventListener('change', e => {
+      handleGroupCSVUpload(gIdx, e.target);
     });
     container.appendChild(div);
   });
@@ -159,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('addGroup').addEventListener('click', addGroup);
   document.getElementById('saveGroups').addEventListener('click', saveGroups);
-  document.getElementById('csvUpload').addEventListener('change', handleCSVUpload);
   document.getElementById('addKeyword').addEventListener('click', addKeyword);
   document.getElementById('saveKeywords').addEventListener('click', saveKeywords);
   document.getElementById('colorLast').addEventListener('input', e => {

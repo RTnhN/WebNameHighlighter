@@ -45,7 +45,7 @@ section label {
   flex: 1;
 }
 
-#csvUpload {
+.csv-upload {
   display: block;
   margin-bottom: 5px;
 }
