@@ -44,3 +44,8 @@ section label {
 .group-header input {
   flex: 1;
 }
+
+#csvUpload {
+  display: block;
+  margin-bottom: 5px;
+}

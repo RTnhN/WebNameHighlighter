@@ -13,6 +13,37 @@ function dedupeNames(arr) {
   return Array.from(map.values());
 }
 
+function handleCSVUpload(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+    lines.forEach(line => {
+      const parts = line.split(',');
+      if (parts.length >= 3) {
+        const groupName = parts[0].trim();
+        const first = parts[1].trim();
+        const last = parts[2].trim();
+        if (!groupName || (!first && !last)) return;
+        let group = currentNameGroups.find(g => g.name.toLowerCase() === groupName.toLowerCase());
+        if (!group) {
+          group = { name: groupName, names: [] };
+          currentNameGroups.push(group);
+        }
+        group.names.push({ first, last });
+      }
+    });
+    currentNameGroups.forEach(g => {
+      g.names = dedupeNames(g.names);
+    });
+    chrome.storage.local.set({ nameGroups: currentNameGroups });
+    renderGroups();
+    evt.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function renderGroups() {
   const container = document.getElementById('groups');
   container.innerHTML = '';
@@ -128,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('addGroup').addEventListener('click', addGroup);
   document.getElementById('saveGroups').addEventListener('click', saveGroups);
+  document.getElementById('csvUpload').addEventListener('change', handleCSVUpload);
   document.getElementById('addKeyword').addEventListener('click', addKeyword);
   document.getElementById('saveKeywords').addEventListener('click', saveKeywords);
   document.getElementById('colorLast').addEventListener('input', e => {
