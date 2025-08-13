@@ -1,6 +1,5 @@
-let currentNames = [];
-let currentKeywords = [];
-let currentColors = { last: '#fff59d', full: '#90caf9', keyword: '#ffcc80' };
+let currentNameGroups = [];
+let currentKeywordGroups = [];
 
 function dedupeNames(arr) {
   const map = new Map();
@@ -13,137 +12,227 @@ function dedupeNames(arr) {
   return Array.from(map.values());
 }
 
-function renderNames(names) {
-  const tbody = document.querySelector('#names tbody');
-  tbody.innerHTML = '';
-  names.forEach((n, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><input class="first" value="${n.first}"></td>` +
-                   `<td><input class="last" value="${n.last}"></td>` +
-                   `<td><button class="delete">x</button></td>`;
-    tr.querySelector('.delete').addEventListener('click', () => {
-      currentNames.splice(idx, 1);
-      renderNames(currentNames);
-      saveNamesToStorage();
-    });
-    tbody.appendChild(tr);
-  });
-}
-
-function renderKeywords(list) {
-  const ul = document.getElementById('keywordList');
-  ul.innerHTML = '';
-  list.forEach((word, index) => {
-    const li = document.createElement('li');
-    li.textContent = word;
-    const btn = document.createElement('button');
-    btn.textContent = 'x';
-    btn.addEventListener('click', () => {
-      currentKeywords.splice(index, 1);
-      saveKeywordsToStorage();
-      renderKeywords(currentKeywords);
-    });
-    li.appendChild(btn);
-    ul.appendChild(li);
-  });
-}
-
-function saveColorsToStorage() {
-  chrome.storage.local.set({ colors: currentColors });
-}
-
-function saveNamesToStorage() {
-  chrome.storage.local.set({ names: currentNames });
-}
-
-function saveKeywordsToStorage() {
-  chrome.storage.local.set({ keywords: currentKeywords });
-}
-
-function handleCSV(evt) {
-  const file = evt.target.files[0];
+function handleGroupCSVUpload(gIdx, input, mode) {
+  const file = input.files[0];
   if (!file) return;
-  const mode = document.querySelector('input[name="mode"]:checked').value;
+
+  // capture unsaved edits before importing
+  saveGroups();
+
   const reader = new FileReader();
   reader.onload = e => {
     const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
-    const parsed = [];
+    const imported = [];
     lines.forEach(line => {
       const parts = line.split(',');
       if (parts.length >= 2) {
         const first = parts[0].trim();
         const last = parts[1].trim();
-        if (first || last) parsed.push({ first, last });
+        if (first || last) {
+          imported.push({ first, last });
+        }
       }
     });
-    const unique = dedupeNames(parsed);
+    const unique = dedupeNames(imported);
     if (mode === 'replace') {
-      currentNames = unique;
+      currentNameGroups[gIdx].names = unique;
     } else {
-      currentNames = dedupeNames(currentNames.concat(unique));
+      currentNameGroups[gIdx].names = dedupeNames(currentNameGroups[gIdx].names.concat(unique));
     }
-    renderNames(currentNames);
-    saveNamesToStorage();
-    evt.target.value = '';
+    chrome.storage.local.set({ nameGroups: currentNameGroups });
+    renderGroups();
+    input.value = '';
   };
   reader.readAsText(file);
 }
 
-function addKeyword() {
-  const input = document.getElementById('keyword');
-  const word = input.value.trim();
-  if (word && !currentKeywords.some(k => k.toLowerCase() === word.toLowerCase())) {
-    currentKeywords.push(word);
-    renderKeywords(currentKeywords);
-    saveKeywordsToStorage();
-  }
-  input.value = '';
-}
-
-function addName() {
-  currentNames.push({ first: '', last: '' });
-  renderNames(currentNames);
-}
-
-function saveNames() {
-  const rows = document.querySelectorAll('#names tbody tr');
-  const updated = [];
-  rows.forEach(row => {
-    const first = row.querySelector('.first').value.trim();
-    const last = row.querySelector('.last').value.trim();
-    if (first || last) updated.push({ first, last });
+function renderGroups() {
+  const container = document.getElementById('groups');
+  container.innerHTML = '';
+  currentNameGroups.forEach((g, gIdx) => {
+    const div = document.createElement('div');
+    div.className = 'group';
+    const colorLast = g.colorLast || '#fff59d';
+    const colorFull = g.colorFull || '#90caf9';
+    div.innerHTML = `
+      <div class="group-header">
+        <input class="group-name" value="${g.name}">
+        <input type="color" class="nm-color-last" value="${colorLast}" title="Last name color">
+        <input type="color" class="nm-color-full" value="${colorFull}" title="Full name color">
+        <button class="delete-group">x</button>
+      </div>
+      <div class="csv-controls">
+        <input type="file" class="csv-upload" accept=".csv" />
+        <select class="csv-mode">
+          <option value="append">Append</option>
+          <option value="replace">Replace</option>
+        </select>
+      </div>
+      <table class="names">
+        <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="add-name">Add Name</button>
+    `;
+    const tbody = div.querySelector('tbody');
+    g.names.forEach((n, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input class="first" value="${n.first}"></td>` +
+                     `<td><input class="last" value="${n.last}"></td>` +
+                     `<td><button class="delete">x</button></td>`;
+      const firstInput = tr.querySelector('.first');
+      const lastInput = tr.querySelector('.last');
+      firstInput.addEventListener('input', e => {
+        g.names[idx].first = e.target.value;
+      });
+      lastInput.addEventListener('input', e => {
+        g.names[idx].last = e.target.value;
+      });
+      tr.querySelector('.delete').addEventListener('click', () => {
+        g.names.splice(idx, 1);
+        renderGroups();
+      });
+      tbody.appendChild(tr);
+    });
+    div.querySelector('.add-name').addEventListener('click', () => {
+      g.names.push({ first: '', last: '' });
+      renderGroups();
+    });
+    div.querySelector('.group-name').addEventListener('input', e => {
+      g.name = e.target.value;
+    });
+    div.querySelector('.nm-color-last').addEventListener('input', e => {
+      g.colorLast = e.target.value;
+    });
+    div.querySelector('.nm-color-full').addEventListener('input', e => {
+      g.colorFull = e.target.value;
+    });
+    div.querySelector('.delete-group').addEventListener('click', () => {
+      currentNameGroups.splice(gIdx, 1);
+      renderGroups();
+    });
+    div.querySelector('.csv-upload').addEventListener('change', e => {
+      const mode = div.querySelector('.csv-mode').value;
+      handleGroupCSVUpload(gIdx, e.target, mode);
+    });
+    container.appendChild(div);
   });
-  currentNames = dedupeNames(updated);
-  renderNames(currentNames);
-  saveNamesToStorage();
+}
+
+function addGroup() {
+  currentNameGroups.push({ name: '', names: [], colorLast: '#fff59d', colorFull: '#90caf9' });
+  renderGroups();
+}
+
+function saveGroups() {
+  const groups = [];
+  document.querySelectorAll('#groups .group').forEach(div => {
+    const name = div.querySelector('.group-name').value.trim();
+    const names = [];
+    div.querySelectorAll('tbody tr').forEach(row => {
+      const first = row.querySelector('.first').value.trim();
+      const last = row.querySelector('.last').value.trim();
+      if (first || last) names.push({ first, last });
+    });
+    if (name) {
+      const colorLast = div.querySelector('.nm-color-last').value;
+      const colorFull = div.querySelector('.nm-color-full').value;
+      groups.push({ name, names: dedupeNames(names), colorLast, colorFull });
+    }
+  });
+  currentNameGroups = groups;
+  chrome.storage.local.set({ nameGroups: currentNameGroups });
+  renderGroups();
+}
+
+function renderKeywordGroups() {
+  const container = document.getElementById('keywordGroups');
+  container.innerHTML = '';
+  currentKeywordGroups.forEach((g, gIdx) => {
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.innerHTML = `
+      <div class="group-header">
+        <input class="group-name" value="${g.name}">
+        <input type="color" class="kw-color" value="${g.color || '#ffcc80'}">
+        <button class="delete-group">x</button>
+      </div>
+      <ul class="kw-list"></ul>
+      <button class="add-keyword">Add Keyword</button>
+    `;
+    const ul = div.querySelector('.kw-list');
+    g.keywords.forEach((word, idx) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<input class="kw" value="${word}"> <button class="delete">x</button>`;
+      const input = li.querySelector('.kw');
+      input.addEventListener('input', e => {
+        g.keywords[idx] = e.target.value;
+      });
+      li.querySelector('.delete').addEventListener('click', () => {
+        g.keywords.splice(idx, 1);
+        renderKeywordGroups();
+      });
+      ul.appendChild(li);
+    });
+    div.querySelector('.add-keyword').addEventListener('click', () => {
+      g.keywords.push('');
+      renderKeywordGroups();
+    });
+    div.querySelector('.group-name').addEventListener('input', e => {
+      g.name = e.target.value;
+    });
+    div.querySelector('.kw-color').addEventListener('input', e => {
+      g.color = e.target.value;
+    });
+    div.querySelector('.delete-group').addEventListener('click', () => {
+      currentKeywordGroups.splice(gIdx, 1);
+      renderKeywordGroups();
+    });
+    container.appendChild(div);
+  });
+}
+
+function addKeywordGroup() {
+  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80' });
+  renderKeywordGroups();
+}
+
+function saveKeywordGroups() {
+  const groups = [];
+  document.querySelectorAll('#keywordGroups .group').forEach(div => {
+    const name = div.querySelector('.group-name').value.trim();
+    const color = div.querySelector('.kw-color').value;
+    const keywords = [];
+    div.querySelectorAll('.kw-list input.kw').forEach(input => {
+      const w = input.value.trim();
+      if (w && !keywords.some(k => k.toLowerCase() === w.toLowerCase())) {
+        keywords.push(w);
+      }
+    });
+    if (name) {
+      groups.push({ name, keywords, color });
+    }
+  });
+  currentKeywordGroups = groups;
+  chrome.storage.local.set({ keywordGroups: currentKeywordGroups });
+  renderKeywordGroups();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ names: [], keywords: [], colors: currentColors }, data => {
-    currentNames = data.names;
-    currentKeywords = data.keywords;
-    currentColors = data.colors;
-    renderNames(currentNames);
-    renderKeywords(currentKeywords);
-    document.getElementById('colorLast').value = currentColors.last;
-    document.getElementById('colorFull').value = currentColors.full;
-    document.getElementById('colorKeyword').value = currentColors.keyword;
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [] }, data => {
+    currentNameGroups = data.nameGroups.map(g => ({
+      name: g.name || '',
+      names: g.names || [],
+      colorLast: g.colorLast || '#fff59d',
+      colorFull: g.colorFull || '#90caf9'
+    }));
+    currentKeywordGroups = data.keywordGroups;
+    renderGroups();
+    renderKeywordGroups();
   });
 
-  document.getElementById('upload').addEventListener('change', handleCSV);
-  document.getElementById('addKeyword').addEventListener('click', addKeyword);
-  document.getElementById('addName').addEventListener('click', addName);
-  document.getElementById('saveNames').addEventListener('click', saveNames);
-  document.getElementById('colorLast').addEventListener('input', e => {
-    currentColors.last = e.target.value;
-    saveColorsToStorage();
-  });
-  document.getElementById('colorFull').addEventListener('input', e => {
-    currentColors.full = e.target.value;
-    saveColorsToStorage();
-  });
-  document.getElementById('colorKeyword').addEventListener('input', e => {
-    currentColors.keyword = e.target.value;
-    saveColorsToStorage();
-  });
+  document.getElementById('addGroup').addEventListener('click', addGroup);
+  document.getElementById('saveGroups').addEventListener('click', saveGroups);
+  document.getElementById('addKeywordGroup').addEventListener('click', addKeywordGroup);
+  document.getElementById('saveKeywordGroups').addEventListener('click', saveKeywordGroups);
 });

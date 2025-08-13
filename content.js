@@ -44,7 +44,7 @@ function clearHighlights() {
   });
 }
 
-function walkAndHighlight(regex, color, className) {
+function walkAndHighlight(regex, color, className, groupName) {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
   const nodes = [];
   while (walker.nextNode()) {
@@ -67,6 +67,9 @@ function walkAndHighlight(regex, color, className) {
       span.className = className;
       span.style.backgroundColor = color;
       span.textContent = match;
+      if (groupName) {
+        span.title = groupName;
+      }
       frag.appendChild(span);
       lastIndex = offset + match.length;
     });
@@ -79,39 +82,45 @@ function walkAndHighlight(regex, color, className) {
 }
 
 function refreshHighlights() {
-  chrome.storage.local.get({ names: [], keywords: [], colors: DEFAULT_COLORS }, data => {
-    const lastSet = new Set();
-    const fullSet = new Set();
-    data.names.forEach(n => {
-      const l = n.last.trim();
-      const f = n.first.trim();
-      if (l) lastSet.add(l.toLowerCase());
-      if (f && l) {
-        generateFullVariants(f, l).forEach(v => fullSet.add(v.toLowerCase()));
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [] }, data => {
+    clearHighlights();
+
+    data.nameGroups.forEach(group => {
+      const lastSet = new Set();
+      const fullSet = new Set();
+      group.names.forEach(n => {
+        const l = n.last.trim();
+        const f = n.first.trim();
+        if (l) lastSet.add(l.toLowerCase());
+        if (f && l) {
+          generateFullVariants(f, l).forEach(v => fullSet.add(v.toLowerCase()));
+        }
+      });
+      const regexFull = buildRegex(fullSet);
+      const regexLast = buildRegex(lastSet);
+      if (regexFull) {
+        walkAndHighlight(regexFull, group.colorFull || DEFAULT_COLORS.full, HIGHLIGHT_CLASSES.full, group.name);
+      }
+      if (regexLast) {
+        walkAndHighlight(regexLast, group.colorLast || DEFAULT_COLORS.last, HIGHLIGHT_CLASSES.last, group.name);
       }
     });
-    const keywordSet = new Set();
-    data.keywords.forEach(k => keywordSet.add(k.toLowerCase()));
-    clearHighlights();
-    const regexFull = buildRegex(fullSet);
-    const regexLast = buildRegex(lastSet);
-    const regexKeyword = buildRegex(keywordSet);
-    if (regexFull) {
-      walkAndHighlight(regexFull, data.colors.full || DEFAULT_COLORS.full, HIGHLIGHT_CLASSES.full);
-    }
-    if (regexLast) {
-      walkAndHighlight(regexLast, data.colors.last || DEFAULT_COLORS.last, HIGHLIGHT_CLASSES.last);
-    }
-    if (regexKeyword) {
-      walkAndHighlight(regexKeyword, data.colors.keyword || DEFAULT_COLORS.keyword, HIGHLIGHT_CLASSES.keyword);
-    }
+
+    data.keywordGroups.forEach(group => {
+      const keywordSet = new Set();
+      group.keywords.forEach(k => keywordSet.add(k.toLowerCase()));
+      const regexKeyword = buildRegex(keywordSet);
+      if (regexKeyword) {
+        walkAndHighlight(regexKeyword, group.color || DEFAULT_COLORS.keyword, HIGHLIGHT_CLASSES.keyword, group.name);
+      }
+    });
   });
 }
 
 refreshHighlights();
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && (changes.names || changes.keywords || changes.colors)) {
+  if (area === 'local' && (changes.nameGroups || changes.keywordGroups)) {
     refreshHighlights();
   }
 });
