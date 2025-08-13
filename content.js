@@ -10,6 +10,8 @@ const DEFAULT_COLORS = {
   keyword: '#ffcc80'
 };
 
+const DEFAULT_TEXT_COLOR = '#000000';
+
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -44,7 +46,7 @@ function clearHighlights() {
   });
 }
 
-function walkAndHighlight(regex, color, className, groupName) {
+function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
   const nodes = [];
   while (walker.nextNode()) {
@@ -65,7 +67,10 @@ function walkAndHighlight(regex, color, className, groupName) {
       if (before) frag.appendChild(document.createTextNode(before));
       const span = document.createElement('span');
       span.className = className;
-      span.style.backgroundColor = color;
+      span.style.backgroundColor = bgColor;
+      if (textColor) {
+        span.style.color = textColor;
+      }
       span.textContent = match;
       if (groupName) {
         span.title = groupName;
@@ -99,10 +104,22 @@ function refreshHighlights() {
       const regexFull = buildRegex(fullSet);
       const regexLast = buildRegex(lastSet);
       if (regexFull) {
-        walkAndHighlight(regexFull, group.colorFull || DEFAULT_COLORS.full, HIGHLIGHT_CLASSES.full, group.name);
+        walkAndHighlight(
+          regexFull,
+          group.colorFull || DEFAULT_COLORS.full,
+          group.textColorFull || DEFAULT_TEXT_COLOR,
+          HIGHLIGHT_CLASSES.full,
+          group.name
+        );
       }
       if (regexLast) {
-        walkAndHighlight(regexLast, group.colorLast || DEFAULT_COLORS.last, HIGHLIGHT_CLASSES.last, group.name);
+        walkAndHighlight(
+          regexLast,
+          group.colorLast || DEFAULT_COLORS.last,
+          group.textColorLast || DEFAULT_TEXT_COLOR,
+          HIGHLIGHT_CLASSES.last,
+          group.name
+        );
       }
     });
 
@@ -111,7 +128,13 @@ function refreshHighlights() {
       group.keywords.forEach(k => keywordSet.add(k.toLowerCase()));
       const regexKeyword = buildRegex(keywordSet);
       if (regexKeyword) {
-        walkAndHighlight(regexKeyword, group.color || DEFAULT_COLORS.keyword, HIGHLIGHT_CLASSES.keyword, group.name);
+        walkAndHighlight(
+          regexKeyword,
+          group.color || DEFAULT_COLORS.keyword,
+          group.textColor || DEFAULT_TEXT_COLOR,
+          HIGHLIGHT_CLASSES.keyword,
+          group.name
+        );
       }
     });
   });
