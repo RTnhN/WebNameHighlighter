@@ -77,6 +77,14 @@ function renderGroups() {
       tr.innerHTML = `<td><input class="first" value="${n.first}"></td>` +
                      `<td><input class="last" value="${n.last}"></td>` +
                      `<td><button class="delete">x</button></td>`;
+      const firstInput = tr.querySelector('.first');
+      const lastInput = tr.querySelector('.last');
+      firstInput.addEventListener('input', e => {
+        g.names[idx].first = e.target.value;
+      });
+      lastInput.addEventListener('input', e => {
+        g.names[idx].last = e.target.value;
+      });
       tr.querySelector('.delete').addEventListener('click', () => {
         g.names.splice(idx, 1);
         renderGroups();
@@ -86,6 +94,9 @@ function renderGroups() {
     div.querySelector('.add-name').addEventListener('click', () => {
       g.names.push({ first: '', last: '' });
       renderGroups();
+    });
+    div.querySelector('.group-name').addEventListener('input', e => {
+      g.name = e.target.value;
     });
     div.querySelector('.delete-group').addEventListener('click', () => {
       currentNameGroups.splice(gIdx, 1);
@@ -142,6 +153,10 @@ function renderKeywordGroups() {
     g.keywords.forEach((word, idx) => {
       const li = document.createElement('li');
       li.innerHTML = `<input class="kw" value="${word}"> <button class="delete">x</button>`;
+      const input = li.querySelector('.kw');
+      input.addEventListener('input', e => {
+        g.keywords[idx] = e.target.value;
+      });
       li.querySelector('.delete').addEventListener('click', () => {
         g.keywords.splice(idx, 1);
         renderKeywordGroups();
@@ -151,6 +166,9 @@ function renderKeywordGroups() {
     div.querySelector('.add-keyword').addEventListener('click', () => {
       g.keywords.push('');
       renderKeywordGroups();
+    });
+    div.querySelector('.group-name').addEventListener('input', e => {
+      g.name = e.target.value;
     });
     div.querySelector('.kw-color').addEventListener('input', e => {
       g.color = e.target.value;
