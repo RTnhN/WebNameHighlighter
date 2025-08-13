@@ -13,23 +13,33 @@ function dedupeNames(arr) {
   return Array.from(map.values());
 }
 
-function handleGroupCSVUpload(gIdx, input) {
+function handleGroupCSVUpload(gIdx, input, mode) {
   const file = input.files[0];
   if (!file) return;
+
+  // capture unsaved edits before importing
+  saveGroups();
+
   const reader = new FileReader();
   reader.onload = e => {
     const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+    const imported = [];
     lines.forEach(line => {
       const parts = line.split(',');
       if (parts.length >= 2) {
         const first = parts[0].trim();
         const last = parts[1].trim();
         if (first || last) {
-          currentNameGroups[gIdx].names.push({ first, last });
+          imported.push({ first, last });
         }
       }
     });
-    currentNameGroups[gIdx].names = dedupeNames(currentNameGroups[gIdx].names);
+    const unique = dedupeNames(imported);
+    if (mode === 'replace') {
+      currentNameGroups[gIdx].names = unique;
+    } else {
+      currentNameGroups[gIdx].names = dedupeNames(currentNameGroups[gIdx].names.concat(unique));
+    }
     chrome.storage.local.set({ nameGroups: currentNameGroups });
     renderGroups();
     input.value = '';
@@ -48,7 +58,13 @@ function renderGroups() {
         <input class="group-name" value="${g.name}">
         <button class="delete-group">x</button>
       </div>
-      <input type="file" class="csv-upload" accept=".csv" />
+      <div class="csv-controls">
+        <input type="file" class="csv-upload" accept=".csv" />
+        <select class="csv-mode">
+          <option value="append">Append</option>
+          <option value="replace">Replace</option>
+        </select>
+      </div>
       <table class="names">
         <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
         <tbody></tbody>
@@ -76,7 +92,8 @@ function renderGroups() {
       renderGroups();
     });
     div.querySelector('.csv-upload').addEventListener('change', e => {
-      handleGroupCSVUpload(gIdx, e.target);
+      const mode = div.querySelector('.csv-mode').value;
+      handleGroupCSVUpload(gIdx, e.target, mode);
     });
     container.appendChild(div);
   });

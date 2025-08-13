@@ -47,5 +47,16 @@ section label {
 
 .csv-upload {
   display: block;
+  margin-bottom: 0;
+}
+
+.csv-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
   margin-bottom: 5px;
+}
+
+.csv-mode {
+  height: 24px;
 }

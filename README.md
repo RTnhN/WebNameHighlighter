@@ -10,11 +10,11 @@ Chrome extension that highlights names and keywords on web pages.
 - Highlights all occurrences on the current page.
 - Hovering a highlighted name displays its group name.
 - Choose highlight colors for last name, full name, and keyword matches.
-- Import names into each group from a CSV file.
+- Import names into each group from a CSV file with append or replace options.
 
 ## Usage
 1. Load the extension in Chrome via `chrome://extensions` → **Load unpacked** and select this folder.
 2. Click the extension icon to open the popup.
 3. Create groups and add names or keywords in the popup, then click the corresponding **Save** buttons.
-   Each group has an **Import CSV** control that accepts files with `first,last` columns to append names.
+   Each group has an **Import CSV** control that accepts files with `first,last` columns and lets you **Append** to or **Replace** the existing names.
 4. The active page will highlight matching names and keywords.
