@@ -53,12 +53,16 @@ function renderGroups() {
     const div = document.createElement('div');
     div.className = 'group';
     const colorLast = g.colorLast || '#fff59d';
+    const textColorLast = g.textColorLast || '#000000';
     const colorFull = g.colorFull || '#90caf9';
+    const textColorFull = g.textColorFull || '#000000';
     div.innerHTML = `
       <div class="group-header">
         <input class="group-name" value="${g.name}">
-        <input type="color" class="nm-color-last" value="${colorLast}" title="Last name color">
-        <input type="color" class="nm-color-full" value="${colorFull}" title="Full name color">
+        <input type="color" class="nm-color-last" value="${colorLast}" title="Last name highlight">
+        <input type="color" class="nm-text-color-last" value="${textColorLast}" title="Last name text color">
+        <input type="color" class="nm-color-full" value="${colorFull}" title="Full name highlight">
+        <input type="color" class="nm-text-color-full" value="${textColorFull}" title="Full name text color">
         <button class="delete-group">x</button>
       </div>
       <div class="csv-controls">
@@ -104,8 +108,14 @@ function renderGroups() {
     div.querySelector('.nm-color-last').addEventListener('input', e => {
       g.colorLast = e.target.value;
     });
+    div.querySelector('.nm-text-color-last').addEventListener('input', e => {
+      g.textColorLast = e.target.value;
+    });
     div.querySelector('.nm-color-full').addEventListener('input', e => {
       g.colorFull = e.target.value;
+    });
+    div.querySelector('.nm-text-color-full').addEventListener('input', e => {
+      g.textColorFull = e.target.value;
     });
     div.querySelector('.delete-group').addEventListener('click', () => {
       currentNameGroups.splice(gIdx, 1);
@@ -120,7 +130,14 @@ function renderGroups() {
 }
 
 function addGroup() {
-  currentNameGroups.push({ name: '', names: [], colorLast: '#fff59d', colorFull: '#90caf9' });
+  currentNameGroups.push({
+    name: '',
+    names: [],
+    colorLast: '#fff59d',
+    textColorLast: '#000000',
+    colorFull: '#90caf9',
+    textColorFull: '#000000'
+  });
   renderGroups();
 }
 
@@ -136,8 +153,10 @@ function saveGroups() {
     });
     if (name) {
       const colorLast = div.querySelector('.nm-color-last').value;
+      const textColorLast = div.querySelector('.nm-text-color-last').value;
       const colorFull = div.querySelector('.nm-color-full').value;
-      groups.push({ name, names: dedupeNames(names), colorLast, colorFull });
+      const textColorFull = div.querySelector('.nm-text-color-full').value;
+      groups.push({ name, names: dedupeNames(names), colorLast, textColorLast, colorFull, textColorFull });
     }
   });
   currentNameGroups = groups;
@@ -154,7 +173,8 @@ function renderKeywordGroups() {
     div.innerHTML = `
       <div class="group-header">
         <input class="group-name" value="${g.name}">
-        <input type="color" class="kw-color" value="${g.color || '#ffcc80'}">
+        <input type="color" class="kw-color" value="${g.color || '#ffcc80'}" title="Highlight color">
+        <input type="color" class="kw-text-color" value="${g.textColor || '#000000'}" title="Text color">
         <button class="delete-group">x</button>
       </div>
       <ul class="kw-list"></ul>
@@ -184,6 +204,9 @@ function renderKeywordGroups() {
     div.querySelector('.kw-color').addEventListener('input', e => {
       g.color = e.target.value;
     });
+    div.querySelector('.kw-text-color').addEventListener('input', e => {
+      g.textColor = e.target.value;
+    });
     div.querySelector('.delete-group').addEventListener('click', () => {
       currentKeywordGroups.splice(gIdx, 1);
       renderKeywordGroups();
@@ -193,7 +216,7 @@ function renderKeywordGroups() {
 }
 
 function addKeywordGroup() {
-  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80' });
+  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80', textColor: '#000000' });
   renderKeywordGroups();
 }
 
@@ -202,6 +225,7 @@ function saveKeywordGroups() {
   document.querySelectorAll('#keywordGroups .group').forEach(div => {
     const name = div.querySelector('.group-name').value.trim();
     const color = div.querySelector('.kw-color').value;
+    const textColor = div.querySelector('.kw-text-color').value;
     const keywords = [];
     div.querySelectorAll('.kw-list input.kw').forEach(input => {
       const w = input.value.trim();
@@ -210,7 +234,7 @@ function saveKeywordGroups() {
       }
     });
     if (name) {
-      groups.push({ name, keywords, color });
+      groups.push({ name, keywords, color, textColor });
     }
   });
   currentKeywordGroups = groups;
@@ -224,9 +248,16 @@ document.addEventListener('DOMContentLoaded', () => {
       name: g.name || '',
       names: g.names || [],
       colorLast: g.colorLast || '#fff59d',
-      colorFull: g.colorFull || '#90caf9'
+      textColorLast: g.textColorLast || '#000000',
+      colorFull: g.colorFull || '#90caf9',
+      textColorFull: g.textColorFull || '#000000'
     }));
-    currentKeywordGroups = data.keywordGroups;
+    currentKeywordGroups = data.keywordGroups.map(g => ({
+      name: g.name || '',
+      keywords: g.keywords || [],
+      color: g.color || '#ffcc80',
+      textColor: g.textColor || '#000000'
+    }));
     renderGroups();
     renderKeywordGroups();
   });

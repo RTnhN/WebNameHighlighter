@@ -45,12 +45,15 @@ section label {
   flex: 1;
 }
 
-.group-header .kw-color {
+.group-header .kw-color,
+.group-header .kw-text-color {
   margin-left: 5px;
 }
 
 .group-header .nm-color-last,
-.group-header .nm-color-full {
+.group-header .nm-text-color-last,
+.group-header .nm-color-full,
+.group-header .nm-text-color-full {
   margin-left: 5px;
 }
 
