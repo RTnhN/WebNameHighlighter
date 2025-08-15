@@ -84,3 +84,9 @@ section label {
 .delete-group {
   margin-left: 5px;
 }
+
+#header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
