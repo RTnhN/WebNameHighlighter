@@ -22,11 +22,23 @@ function generateFullVariants(first, last) {
   const l = last.trim();
   if (!f || !l) return [];
   const fi = f[0];
+  variants.add(` ${f} ${l}`);
   variants.add(`${f} ${l}`);
-  variants.add(`${fi} ${l}`);
-  variants.add(`${fi}. ${l}`);
-  variants.add(`${l}, ${f}`);
-  variants.add(`${l}, ${fi}`);
+  variants.add(` ${fi} ${l}`);
+  variants.add(` ${fi}. ${l}`);
+  variants.add(` ${l}, ${f}`);
+  variants.add(` ${l}, ${fi}`);
+  variants.add(`"${f} ${l}`);
+  variants.add(`"${fi} ${l}`);
+  variants.add(`"${fi}. ${l}`);
+  variants.add(`"${l}, ${f}`);
+  variants.add(`"${l}, ${fi}`);
+  variants.add(`'${f} ${l}`);
+  variants.add(`'${fi} ${l}`);
+  variants.add(`'${fi}. ${l}`);
+  variants.add(`'${l}, ${f}`);
+  variants.add(`'${l}, ${fi}`);
+
   return Array.from(variants);
 }
 
@@ -152,9 +164,12 @@ function walkAndHighlightNames(regexLast, lastMap, group) {
       for (const variant of variants) {
         const variantLen = variant.length;
         const searchStart = Math.max(0, start - (variantLen - (end - start)));
-        const idx = textLower.indexOf(variant, searchStart);
+        let idx = textLower.indexOf(variant, searchStart);
 
         if (idx !== -1 && idx <= start && idx + variantLen >= end) {
+          if (variant[0] === ' ' || variant[0] === '"' || variant[0] === "'") {
+            idx += 1; // Adjust for leading space or quote
+          }
           const before = text.slice(lastIndex, idx);
           if (before) frag.appendChild(document.createTextNode(before));
 
