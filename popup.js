@@ -95,6 +95,19 @@ function renderGroups() {
       lastInput.addEventListener('input', e => {
         g.names[idx].last = e.target.value;
       });
+      lastInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && idx === g.names.length - 1) {
+          e.preventDefault();
+          g.names.push({ first: '', last: '' });
+          renderGroups();
+          setTimeout(() => {
+            const groups = document.querySelectorAll('#groups .group');
+            const rows = groups[gIdx].querySelectorAll('tbody tr');
+            const input = rows[rows.length - 1].querySelector('.first');
+            input.focus();
+          }, 0);
+        }
+      });
       tr.querySelector('.delete').addEventListener('click', () => {
         g.names.splice(idx, 1);
         renderGroups();
@@ -199,6 +212,18 @@ function renderKeywordGroups() {
       const input = li.querySelector('.kw');
       input.addEventListener('input', e => {
         g.keywords[idx] = e.target.value;
+      });
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && idx === g.keywords.length - 1) {
+          e.preventDefault();
+          g.keywords.push('');
+          renderKeywordGroups();
+          setTimeout(() => {
+            const groups = document.querySelectorAll('#keywordGroups .group');
+            const inputs = groups[gIdx].querySelectorAll('.kw-list input.kw');
+            inputs[inputs.length - 1].focus();
+          }, 0);
+        }
       });
       li.querySelector('.delete').addEventListener('click', () => {
         g.keywords.splice(idx, 1);
