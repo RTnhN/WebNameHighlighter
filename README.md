@@ -2,7 +2,7 @@
 
 A Chrome extension that highlights names and keywords on web pages.
 
-![Screenshot](readmeAssets\example640x400.png)
+![Screenshot](./readmeAssets/example640x400.png)
 
 ---
 
