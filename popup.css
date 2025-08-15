@@ -80,3 +80,7 @@ section label {
 .group.collapsed .group-body {
   display: none;
 }
+
+.delete-group {
+  margin-left: 5px;
+}
