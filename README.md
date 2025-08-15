@@ -2,6 +2,8 @@
 
 Chrome extension that highlights names and keywords on web pages.
 
+![Screenshot](readmeAssets/example.png)
+
 ## Features
 - Organize names into custom groups.
 - Add, edit, or delete names within each group.
