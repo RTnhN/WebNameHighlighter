@@ -6,6 +6,7 @@ Chrome extension that highlights names and keywords on web pages.
 - Organize names into custom groups.
 - Add, edit, or delete names within each group.
 - Organize keywords into custom groups with individual highlight and text colors.
+- Collapse or expand groups to reduce scrolling.
 - Automatically generates name variants (e.g. `j smith`, `j. smith`, `john smith`, `smith, j`, `smith, john`).
 - Highlights all occurrences on the current page.
 - Hovering a highlighted name displays its group name.
