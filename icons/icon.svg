@@ -12,9 +12,9 @@
    viewBox="0 0 33.866666 33.866668"
    version="1.1"
    id="svg8"
-   inkscape:export-filename="C:\Users\Zachs\Desktop\Projects\WebNameHighlighter\icons\icon-16.png"
-   inkscape:export-xdpi="12"
-   inkscape:export-ydpi="12"
+   inkscape:export-filename="C:\Users\Zachs\Desktop\Projects\WebNameHighlighter\icons\icon-128.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
    sodipodi:docname="icon.svg">
   <defs
@@ -26,9 +26,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="40.633244"
-     inkscape:cy="73.627809"
+     inkscape:zoom="2.8"
+     inkscape:cx="7.3109503"
+     inkscape:cy="92.682746"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -40,9 +40,9 @@
      inkscape:guide-bbox="true"
      inkscape:snap-midpoints="true"
      inkscape:pagecheckerboard="true"
-     inkscape:window-width="1911"
+     inkscape:window-width="1946"
      inkscape:window-height="1357"
-     inkscape:window-x="1253"
+     inkscape:window-x="608"
      inkscape:window-y="717"
      inkscape:window-maximized="0"
      inkscape:snap-global="true">
@@ -99,7 +99,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -108,26 +108,34 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="opacity:1;fill:#fffff9;fill-opacity:1;stroke:#000000;stroke-width:1.47259;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:#fffff9;fill-opacity:1;stroke:#000000;stroke-width:1.787;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect875"
        width="23.905062"
        height="23.905067"
        x="4.9671535"
        y="4.9808002"
        rx="5.6027498"
-       ry="5.6027498" />
+       ry="5.6027498"
+       inkscape:export-xdpi="47.450001"
+       inkscape:export-ydpi="47.450001" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.78676;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 8.7874027,16.933334 H 24.728699"
-       id="path879" />
+       id="path879"
+       inkscape:export-xdpi="47.450001"
+       inkscape:export-ydpi="47.450001" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:1.78674;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#000000;stroke-width:1.787;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 8.7874027,10.023274 H 24.728699"
-       id="path879-0" />
+       id="path879-0"
+       inkscape:export-xdpi="47.450001"
+       inkscape:export-ydpi="47.450001" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1.78675;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 8.7874027,23.843391 H 24.728699"
-       id="path879-0-1" />
+       id="path879-0-1"
+       inkscape:export-xdpi="47.450001"
+       inkscape:export-ydpi="47.450001" />
     <rect
        style="opacity:0.498741;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:1.41171;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect881"
@@ -135,6 +143,8 @@
        height="6.2727594"
        x="6.6851826"
        y="13.844118"
-       rx="3.6956486e-18" />
+       rx="3.6956486e-18"
+       inkscape:export-xdpi="47.450001"
+       inkscape:export-ydpi="47.450001" />
   </g>
 </svg>
