@@ -12,9 +12,9 @@
    viewBox="0 0 33.866666 33.866668"
    version="1.1"
    id="svg8"
-   inkscape:export-filename="C:\Users\Zachs\Desktop\Projects\WebNameHighlighter\icons\icon-48.png"
-   inkscape:export-xdpi="35.860001"
-   inkscape:export-ydpi="35.860001"
+   inkscape:export-filename="C:\Users\Zachs\Desktop\Projects\WebNameHighlighter\icons\icon-16.png"
+   inkscape:export-xdpi="12"
+   inkscape:export-ydpi="12"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
    sodipodi:docname="icon.svg">
   <defs
@@ -26,16 +26,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="30.035605"
-     inkscape:cy="36.161864"
+     inkscape:zoom="5.6"
+     inkscape:cx="40.633244"
+     inkscape:cy="73.627809"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      units="px"
-     inkscape:snap-text-baseline="true"
-     inkscape:snap-page="true"
+     inkscape:snap-text-baseline="false"
+     inkscape:snap-page="false"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:snap-midpoints="true"
@@ -44,7 +44,8 @@
      inkscape:window-height="1357"
      inkscape:window-x="1253"
      inkscape:window-y="717"
-     inkscape:window-maximized="0">
+     inkscape:window-maximized="0"
+     inkscape:snap-global="true">
     <sodipodi:guide
        position="5.4122078,31.661694"
        orientation="1,0"
@@ -75,6 +76,20 @@
        inkscape:label=""
        inkscape:locked="false"
        inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="4.2333334,22.240443"
+       orientation="-1,0"
+       id="guide957"
+       inkscape:label=""
+       inkscape:locked="false"
+       inkscape:color="rgb(0,0,255)" />
+    <sodipodi:guide
+       position="1.7372519,29.633334"
+       orientation="0,1"
+       id="guide959"
+       inkscape:label=""
+       inkscape:locked="false"
+       inkscape:color="rgb(0,0,255)" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -93,41 +108,33 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="opacity:1;fill:#fffff9;fill-opacity:1;stroke:none;stroke-width:2.08584;stroke-linecap:square;stroke-linejoin:round"
+       style="opacity:1;fill:#fffff9;fill-opacity:1;stroke:#000000;stroke-width:1.47259;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect875"
-       width="33.866661"
-       height="33.866665"
-       x="3.4801922e-06"
-       y="-4.6666671e-07"
-       rx="7.9375"
-       ry="7.9375" />
+       width="23.905062"
+       height="23.905067"
+       x="4.9671535"
+       y="4.9808002"
+       rx="5.6027498"
+       ry="5.6027498" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:2.53133;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.4122077,16.933334 H 27.996482"
+       style="fill:none;stroke:#000000;stroke-width:1.78676;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 8.7874027,16.933334 H 24.728699"
        id="path879" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:2.53131;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.4122077,7.1437489 H 27.996482"
+       style="fill:none;stroke:#000000;stroke-width:1.78674;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 8.7874027,10.023274 H 24.728699"
        id="path879-0" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:2.53132;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.4122077,26.722916 H 27.996482"
+       style="fill:none;stroke:#000000;stroke-width:1.78675;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 8.7874027,23.843391 H 24.728699"
        id="path879-0-1" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 1.7801921e-6,16.933333 0,33.866666"
-       id="path936" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 3.4801921e-6,-4.666667e-7 1.7801921e-6,16.933333"
-       id="path936-8" />
     <rect
-       style="opacity:0.49874055;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       style="opacity:0.498741;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:1.41171;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect881"
-       width="28.998743"
-       height="8.8867121"
-       x="2.4339609"
-       y="12.556795"
-       rx="5.2356806e-18" />
+       width="20.469004"
+       height="6.2727594"
+       x="6.6851826"
+       y="13.844118"
+       rx="3.6956486e-18" />
   </g>
 </svg>
