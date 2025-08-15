@@ -72,3 +72,11 @@ section label {
 .csv-mode {
   height: 24px;
 }
+
+.group-header .toggle-group {
+  margin-right: 5px;
+}
+
+.group.collapsed .group-body {
+  display: none;
+}

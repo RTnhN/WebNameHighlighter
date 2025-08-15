@@ -51,13 +51,14 @@ function renderGroups() {
   container.innerHTML = '';
   currentNameGroups.forEach((g, gIdx) => {
     const div = document.createElement('div');
-    div.className = 'group';
+    div.className = 'group' + (g.collapsed ? ' collapsed' : '');
     const colorLast = g.colorLast || '#fff59d';
     const textColorLast = g.textColorLast || '#000000';
     const colorFull = g.colorFull || '#90caf9';
     const textColorFull = g.textColorFull || '#000000';
     div.innerHTML = `
       <div class="group-header">
+        <button class="toggle-group">${g.collapsed ? '+' : '-'}</button>
         <input class="group-name" value="${g.name}">
         <input type="color" class="nm-color-last" value="${colorLast}" title="Last name highlight">
         <input type="color" class="nm-text-color-last" value="${textColorLast}" title="Last name text color">
@@ -65,18 +66,20 @@ function renderGroups() {
         <input type="color" class="nm-text-color-full" value="${textColorFull}" title="Full name text color">
         <button class="delete-group">x</button>
       </div>
-      <div class="csv-controls">
-        <input type="file" class="csv-upload" accept=".csv" />
-        <select class="csv-mode">
-          <option value="append">Append</option>
-          <option value="replace">Replace</option>
-        </select>
+      <div class="group-body">
+        <div class="csv-controls">
+          <input type="file" class="csv-upload" accept=".csv" />
+          <select class="csv-mode">
+            <option value="append">Append</option>
+            <option value="replace">Replace</option>
+          </select>
+        </div>
+        <table class="names">
+          <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button class="add-name">Add Name</button>
       </div>
-      <table class="names">
-        <thead><tr><th>First</th><th>Last</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button class="add-name">Add Name</button>
     `;
     const tbody = div.querySelector('tbody');
     g.names.forEach((n, idx) => {
@@ -125,6 +128,10 @@ function renderGroups() {
       const mode = div.querySelector('.csv-mode').value;
       handleGroupCSVUpload(gIdx, e.target, mode);
     });
+    div.querySelector('.toggle-group').addEventListener('click', () => {
+      g.collapsed = !g.collapsed;
+      renderGroups();
+    });
     container.appendChild(div);
   });
 }
@@ -136,7 +143,8 @@ function addGroup() {
     colorLast: '#fff59d',
     textColorLast: '#000000',
     colorFull: '#90caf9',
-    textColorFull: '#000000'
+    textColorFull: '#000000',
+    collapsed: false
   });
   renderGroups();
 }
@@ -156,7 +164,8 @@ function saveGroups() {
       const textColorLast = div.querySelector('.nm-text-color-last').value;
       const colorFull = div.querySelector('.nm-color-full').value;
       const textColorFull = div.querySelector('.nm-text-color-full').value;
-      groups.push({ name, names: dedupeNames(names), colorLast, textColorLast, colorFull, textColorFull });
+      const collapsed = div.classList.contains('collapsed');
+      groups.push({ name, names: dedupeNames(names), colorLast, textColorLast, colorFull, textColorFull, collapsed });
     }
   });
   currentNameGroups = groups;
@@ -169,16 +178,19 @@ function renderKeywordGroups() {
   container.innerHTML = '';
   currentKeywordGroups.forEach((g, gIdx) => {
     const div = document.createElement('div');
-    div.className = 'group';
+    div.className = 'group' + (g.collapsed ? ' collapsed' : '');
     div.innerHTML = `
       <div class="group-header">
+        <button class="toggle-group">${g.collapsed ? '+' : '-'}</button>
         <input class="group-name" value="${g.name}">
         <input type="color" class="kw-color" value="${g.color || '#ffcc80'}" title="Highlight color">
         <input type="color" class="kw-text-color" value="${g.textColor || '#000000'}" title="Text color">
         <button class="delete-group">x</button>
       </div>
-      <ul class="kw-list"></ul>
-      <button class="add-keyword">Add Keyword</button>
+      <div class="group-body">
+        <ul class="kw-list"></ul>
+        <button class="add-keyword">Add Keyword</button>
+      </div>
     `;
     const ul = div.querySelector('.kw-list');
     g.keywords.forEach((word, idx) => {
@@ -211,12 +223,16 @@ function renderKeywordGroups() {
       currentKeywordGroups.splice(gIdx, 1);
       renderKeywordGroups();
     });
+    div.querySelector('.toggle-group').addEventListener('click', () => {
+      g.collapsed = !g.collapsed;
+      renderKeywordGroups();
+    });
     container.appendChild(div);
   });
 }
 
 function addKeywordGroup() {
-  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80', textColor: '#000000' });
+  currentKeywordGroups.push({ name: '', keywords: [], color: '#ffcc80', textColor: '#000000', collapsed: false });
   renderKeywordGroups();
 }
 
@@ -234,7 +250,8 @@ function saveKeywordGroups() {
       }
     });
     if (name) {
-      groups.push({ name, keywords, color, textColor });
+      const collapsed = div.classList.contains('collapsed');
+      groups.push({ name, keywords, color, textColor, collapsed });
     }
   });
   currentKeywordGroups = groups;
@@ -250,13 +267,15 @@ document.addEventListener('DOMContentLoaded', () => {
       colorLast: g.colorLast || '#fff59d',
       textColorLast: g.textColorLast || '#000000',
       colorFull: g.colorFull || '#90caf9',
-      textColorFull: g.textColorFull || '#000000'
+      textColorFull: g.textColorFull || '#000000',
+      collapsed: g.collapsed || false
     }));
     currentKeywordGroups = data.keywordGroups.map(g => ({
       name: g.name || '',
       keywords: g.keywords || [],
       color: g.color || '#ffcc80',
-      textColor: g.textColor || '#000000'
+      textColor: g.textColor || '#000000',
+      collapsed: g.collapsed || false
     }));
     renderGroups();
     renderKeywordGroups();
