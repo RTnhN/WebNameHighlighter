@@ -112,6 +112,17 @@ function collectNodes(root) {
       const tag = current.tagName;
       if (tag === 'BR' || tag === 'WBR') {
         nodes.push(current);
+      } else {
+        // Insert a separator for block-level elements so adjacent text from
+        // different blocks doesn't "smush" together when building fullText.
+        try {
+          const display = window.getComputedStyle(current).display;
+          if (display && display !== 'inline') {
+            nodes.push(current);
+          }
+        } catch (_) {
+          // getComputedStyle can throw for disconnected nodes; ignore.
+        }
       }
     }
   }
@@ -128,11 +139,21 @@ function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
   let fullText = '';
   nodes.forEach(node => {
     if (node.nodeType === Node.TEXT_NODE) {
+      // Ensure there's a gap if previous character wasn't whitespace and this
+      // node doesn't begin with whitespace. This prevents words from separate
+      // blocks from merging together while still allowing cross-element matches
+      // within the same block (e.g. "Zach" + <b>"Strout"</b>).
+      if (fullText && !/\s$/.test(fullText) && !/^\s/.test(node.nodeValue)) {
+        fullText += ' ';
+      }
       positions.push({ node, start: fullText.length });
       fullText += node.nodeValue;
     } else {
-      // Treat <br> and <wbr> as whitespace so matches can span them
-      fullText += ' ';
+      // For block-level separators (<br>, <wbr>, and others collected above),
+      // add a space only if we don't already end with whitespace.
+      if (fullText && !/\s$/.test(fullText)) {
+        fullText += ' ';
+      }
     }
   });
   positions.forEach(p => (p.end = p.start + p.node.nodeValue.length));
