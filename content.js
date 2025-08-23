@@ -99,51 +99,66 @@ function collectTextNodes(root) {
   while ((current = walker.nextNode())) {
     // Ignore empty/whitespace-only nodes early for perf
     if (!current.nodeValue || !/\S/.test(current.nodeValue)) continue;
+    // Skip nodes inside forbidden ancestors or existing highlights
+    if (isInSkippedAncestor(current)) continue;
     nodes.push(current);
   }
   return nodes;
 }
 
-function safeReplace(parent, oldNode, frag) {
-  try {
-    parent.replaceChild(frag, oldNode);
-  } catch (_) {
-    // Some hosts may block mutations; fail silently
-  }
-}
-
 function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
   if (!regex) return;
   const nodes = collectTextNodes(document.body);
+  if (nodes.length === 0) return;
+
+  // Build a mapping from character offsets to text nodes
+  const positions = [];
+  let fullText = '';
   nodes.forEach(node => {
-    const parent = node.parentNode;
-    if (!parent) return;
-    if (isInSkippedAncestor(node)) return;
-
-    const text = node.nodeValue;
-    let lastIndex = 0;
-    const frag = document.createDocumentFragment();
-
-    text.replace(regex, (match, _p1, offset) => {
-      const before = text.slice(lastIndex, offset);
-      if (before) frag.appendChild(document.createTextNode(before));
-      const span = document.createElement('span');
-      span.className = className;
-      span.style.backgroundColor = bgColor;
-      if (textColor) span.style.color = textColor;
-      span.textContent = match;
-      if (groupName) span.title = groupName;
-      frag.appendChild(span);
-      lastIndex = offset + match.length;
-      return match;
-    });
-
-    if (lastIndex) {
-      const after = text.slice(lastIndex);
-      if (after) frag.appendChild(document.createTextNode(after));
-      safeReplace(parent, node, frag);
-    }
+    positions.push({ node, start: fullText.length });
+    fullText += node.nodeValue;
   });
+  positions.forEach(p => (p.end = p.start + p.node.nodeValue.length));
+
+  // Find all matches in the combined text
+  const ranges = [];
+  let match;
+  while ((match = regex.exec(fullText)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+
+    let startNode, endNode, startOffset, endOffset;
+    for (const pos of positions) {
+      if (!startNode && start >= pos.start && start < pos.end) {
+        startNode = pos.node;
+        startOffset = start - pos.start;
+      }
+      if (startNode && !endNode && end > pos.start && end <= pos.end) {
+        endNode = pos.node;
+        endOffset = end - pos.start;
+        break;
+      }
+    }
+    if (!startNode || !endNode) continue;
+
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    ranges.push(range);
+  }
+
+  // Apply highlights from last to first to preserve offsets
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const range = ranges[i];
+    const span = document.createElement('span');
+    span.className = className;
+    span.style.backgroundColor = bgColor;
+    if (textColor) span.style.color = textColor;
+    if (groupName) span.title = groupName;
+    const contents = range.extractContents();
+    span.appendChild(contents);
+    range.insertNode(span);
+  }
 }
 
 function refreshHighlights() {
