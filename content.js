@@ -27,8 +27,9 @@ function escapeRegExp(str) {
 function wildcardToRegex(str) {
   return str
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '[^\s]*')
-    .replace(/\?/g, '[^\s]');
+    .replace(/\s+/g, '\\s+')
+    .replace(/\*/g, '[^\\s]*')
+    .replace(/\?/g, '[^\\s]');
 }
 
 function generateFullVariants(first, last, templates) {
@@ -97,8 +98,7 @@ function collectTextNodes(root) {
   const nodes = [];
   let current;
   while ((current = walker.nextNode())) {
-    // Ignore empty/whitespace-only nodes early for perf
-    if (!current.nodeValue || !/\S/.test(current.nodeValue)) continue;
+    if (!current.nodeValue) continue;
     // Skip nodes inside forbidden ancestors or existing highlights
     if (isInSkippedAncestor(current)) continue;
     nodes.push(current);
