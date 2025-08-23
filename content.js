@@ -93,30 +93,47 @@ function clearHighlights() {
   });
 }
 
-function collectTextNodes(root) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+function collectNodes(root) {
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+    null,
+    false
+  );
   const nodes = [];
   let current;
   while ((current = walker.nextNode())) {
-    if (!current.nodeValue) continue;
-    // Skip nodes inside forbidden ancestors or existing highlights
-    if (isInSkippedAncestor(current)) continue;
-    nodes.push(current);
+    if (current.nodeType === Node.TEXT_NODE) {
+      if (!current.nodeValue) continue;
+      // Skip nodes inside forbidden ancestors or existing highlights
+      if (isInSkippedAncestor(current)) continue;
+      nodes.push(current);
+    } else if (current.nodeType === Node.ELEMENT_NODE) {
+      const tag = current.tagName;
+      if (tag === 'BR' || tag === 'WBR') {
+        nodes.push(current);
+      }
+    }
   }
   return nodes;
 }
 
 function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
   if (!regex) return;
-  const nodes = collectTextNodes(document.body);
+  const nodes = collectNodes(document.body);
   if (nodes.length === 0) return;
 
   // Build a mapping from character offsets to text nodes
   const positions = [];
   let fullText = '';
   nodes.forEach(node => {
-    positions.push({ node, start: fullText.length });
-    fullText += node.nodeValue;
+    if (node.nodeType === Node.TEXT_NODE) {
+      positions.push({ node, start: fullText.length });
+      fullText += node.nodeValue;
+    } else {
+      // Treat <br> and <wbr> as whitespace so matches can span them
+      fullText += ' ';
+    }
   });
   positions.forEach(p => (p.end = p.start + p.node.nodeValue.length));
 
