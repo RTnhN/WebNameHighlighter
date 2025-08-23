@@ -1,6 +1,7 @@
 let currentNameGroups = [];
 let currentKeywordGroups = [];
 let currentVariantTemplates = [];
+let variantCollapsed = false;
 
 const DEFAULT_VARIANT_TEMPLATES = [
   '{first} {last}',
@@ -309,6 +310,11 @@ function renderVariantTemplates() {
     });
     container.appendChild(div);
   });
+
+  const section = document.getElementById('variantSection');
+  section.classList.toggle('collapsed', variantCollapsed);
+  const toggle = document.getElementById('toggleVariant');
+  if (toggle) toggle.textContent = variantCollapsed ? '+' : '-';
 }
 
 function addVariantTemplate() {
@@ -323,7 +329,7 @@ function saveVariantTemplates() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES, variantCollapsed: false }, data => {
     currentNameGroups = data.nameGroups.map(g => ({
       name: g.name || '',
       names: g.names || [],
@@ -341,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
       collapsed: g.collapsed || false
     }));
     currentVariantTemplates = data.variantTemplates || DEFAULT_VARIANT_TEMPLATES.slice();
+    variantCollapsed = data.variantCollapsed || false;
     renderGroups();
     renderKeywordGroups();
     renderVariantTemplates();
@@ -352,4 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveKeywordGroups').addEventListener('click', saveKeywordGroups);
   document.getElementById('addTemplate').addEventListener('click', addVariantTemplate);
   document.getElementById('saveTemplates').addEventListener('click', saveVariantTemplates);
+  document.getElementById('toggleVariant').addEventListener('click', () => {
+    variantCollapsed = !variantCollapsed;
+    chrome.storage.local.set({ variantCollapsed });
+    renderVariantTemplates();
+  });
 });

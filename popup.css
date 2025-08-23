@@ -101,3 +101,12 @@ section label {
 .template-row .tpl {
   flex: 1;
 }
+
+#variantSection .group-name {
+  font-weight: bold;
+}
+
+#variantSection .variant-desc {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
