@@ -12,38 +12,46 @@ const DEFAULT_COLORS = {
 
 const DEFAULT_TEXT_COLOR = '#000000';
 
+const DEFAULT_VARIANT_TEMPLATES = [
+  '{first} {last}',
+  '{f} {last}',
+  '{f}. {last}',
+  '{last}, {first}',
+  '{last}, {f}'
+];
+
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function generateFullVariants(first, last) {
+function wildcardToRegex(str) {
+  return str
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\s+/g, '\\s+')
+    .replace(/\*/g, '[^\\s]*')
+    .replace(/\?/g, '[^\\s]');
+}
+
+function generateFullVariants(first, last, templates) {
   const variants = new Set();
   const f = first.trim();
   const l = last.trim();
   if (!f || !l) return [];
   const fi = f[0];
-  variants.add(` ${f} ${l}`);
-  variants.add(`${f} ${l}`);
-  variants.add(` ${fi} ${l}`);
-  variants.add(` ${fi}. ${l}`);
-  variants.add(` ${l}, ${f}`);
-  variants.add(` ${l}, ${fi}`);
-  variants.add(`"${f} ${l}`);
-  variants.add(`"${fi} ${l}`);
-  variants.add(`"${fi}. ${l}`);
-  variants.add(`"${l}, ${f}`);
-  variants.add(`"${l}, ${fi}`);
-  variants.add(`'${f} ${l}`);
-  variants.add(`'${fi} ${l}`);
-  variants.add(`'${fi}. ${l}`);
-  variants.add(`'${l}, ${f}`);
-  variants.add(`'${l}, ${fi}`);
-
+  templates.forEach(t => {
+    const variant = t
+      .replace(/\{first\}/gi, f)
+      .replace(/\{last\}/gi, l)
+      .replace(/\{f\}/gi, fi);
+    variants.add(variant);
+  });
   return Array.from(variants);
 }
 
-function buildRegex(set) {
-  const arr = Array.from(set).map(escapeRegExp).sort((a, b) => b.length - a.length);
+function buildRegex(set, allowWildcard = false) {
+  const arr = Array.from(set)
+    .map(s => (allowWildcard ? wildcardToRegex(s) : escapeRegExp(s)))
+    .sort((a, b) => b.length - a.length);
   if (arr.length === 0) return null;
   return new RegExp(`\\b(${arr.join('|')})\\b`, 'gi');
 }
@@ -85,156 +93,150 @@ function clearHighlights() {
   });
 }
 
-function collectTextNodes(root) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+function collectNodes(root) {
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+    null,
+    false
+  );
   const nodes = [];
   let current;
   while ((current = walker.nextNode())) {
-    // Ignore empty/whitespace-only nodes early for perf
-    if (!current.nodeValue || !/\S/.test(current.nodeValue)) continue;
-    nodes.push(current);
+    if (current.nodeType === Node.TEXT_NODE) {
+      if (!current.nodeValue) continue;
+      // Skip nodes inside forbidden ancestors or existing highlights
+      if (isInSkippedAncestor(current)) continue;
+      nodes.push(current);
+    } else if (current.nodeType === Node.ELEMENT_NODE) {
+      const tag = current.tagName;
+      if (tag === 'BR' || tag === 'WBR') {
+        nodes.push(current);
+      } else {
+        // Insert a separator for block-level elements so adjacent text from
+        // different blocks doesn't "smush" together when building fullText.
+        try {
+          const display = window.getComputedStyle(current).display;
+          if (display && display !== 'inline') {
+            nodes.push(current);
+          }
+        } catch (_) {
+          // getComputedStyle can throw for disconnected nodes; ignore.
+        }
+      }
+    }
   }
   return nodes;
 }
 
-function safeReplace(parent, oldNode, frag) {
-  try {
-    parent.replaceChild(frag, oldNode);
-  } catch (_) {
-    // Some hosts may block mutations; fail silently
+function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
+  if (!regex) return;
+  const nodes = collectNodes(document.body);
+  if (nodes.length === 0) return;
+
+  // Build a mapping from character offsets to text nodes
+  const positions = [];
+  let fullText = '';
+  nodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // Ensure there's a gap if previous character wasn't whitespace and this
+      // node doesn't begin with whitespace. This prevents words from separate
+      // blocks from merging together while still allowing cross-element matches
+      // within the same block (e.g. "Zach" + <b>"Strout"</b>).
+      if (fullText && !/\s$/.test(fullText) && !/^\s/.test(node.nodeValue)) {
+        fullText += ' ';
+      }
+      positions.push({ node, start: fullText.length });
+      fullText += node.nodeValue;
+    } else {
+      // For block-level separators (<br>, <wbr>, and others collected above),
+      // add a space only if we don't already end with whitespace.
+      if (fullText && !/\s$/.test(fullText)) {
+        fullText += ' ';
+      }
+    }
+  });
+  positions.forEach(p => (p.end = p.start + p.node.nodeValue.length));
+
+  // Find all matches in the combined text
+  const ranges = [];
+  let match;
+  while ((match = regex.exec(fullText)) !== null) {
+    const start = match.index;
+    const end = start + match[0].length;
+
+    let startNode, endNode, startOffset, endOffset;
+    for (const pos of positions) {
+      if (!startNode && start >= pos.start && start < pos.end) {
+        startNode = pos.node;
+        startOffset = start - pos.start;
+      }
+      if (startNode && !endNode && end > pos.start && end <= pos.end) {
+        endNode = pos.node;
+        endOffset = end - pos.start;
+        break;
+      }
+    }
+    if (!startNode || !endNode) continue;
+
+    const range = document.createRange();
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    ranges.push(range);
+  }
+
+  // Apply highlights from last to first to preserve offsets
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const range = ranges[i];
+    const span = document.createElement('span');
+    span.className = className;
+    span.style.backgroundColor = bgColor;
+    if (textColor) span.style.color = textColor;
+    if (groupName) span.title = groupName;
+    const contents = range.extractContents();
+    span.appendChild(contents);
+    range.insertNode(span);
   }
 }
 
-function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
-  if (!regex) return;
-  const nodes = collectTextNodes(document.body);
-  nodes.forEach(node => {
-    const parent = node.parentNode;
-    if (!parent) return;
-    if (isInSkippedAncestor(node)) return;
-
-    const text = node.nodeValue;
-    let lastIndex = 0;
-    const frag = document.createDocumentFragment();
-
-    text.replace(regex, (match, _p1, offset) => {
-      const before = text.slice(lastIndex, offset);
-      if (before) frag.appendChild(document.createTextNode(before));
-      const span = document.createElement('span');
-      span.className = className;
-      span.style.backgroundColor = bgColor;
-      if (textColor) span.style.color = textColor;
-      span.textContent = match;
-      if (groupName) span.title = groupName;
-      frag.appendChild(span);
-      lastIndex = offset + match.length;
-      return match;
-    });
-
-    if (lastIndex) {
-      const after = text.slice(lastIndex);
-      if (after) frag.appendChild(document.createTextNode(after));
-      safeReplace(parent, node, frag);
-    }
-  });
-}
-
-function walkAndHighlightNames(regexLast, lastMap, group) {
-  if (!regexLast) return;
-  const nodes = collectTextNodes(document.body);
-  nodes.forEach(node => {
-    const parent = node.parentNode;
-    if (!parent) return;
-    if (isInSkippedAncestor(node)) return;
-
-    const text = node.nodeValue;
-    const textLower = text.toLowerCase();
-    const frag = document.createDocumentFragment();
-    let lastIndex = 0;
-
-    regexLast.lastIndex = 0;
-    let match;
-    while ((match = regexLast.exec(text)) !== null) {
-      const start = match.index;
-      const end = regexLast.lastIndex;
-      const lastLower = match[0].toLowerCase();
-      const variants = lastMap.get(lastLower) || new Set();
-      let highlighted = false;
-
-      for (const variant of variants) {
-        const variantLen = variant.length;
-        const searchStart = Math.max(0, start - (variantLen - (end - start)));
-        let idx = textLower.indexOf(variant, searchStart);
-
-        if (idx !== -1 && idx <= start && idx + variantLen >= end) {
-          if (variant[0] === ' ' || variant[0] === '"' || variant[0] === "'") {
-            idx += 1; // Adjust for leading space or quote
-          }
-          const before = text.slice(lastIndex, idx);
-          if (before) frag.appendChild(document.createTextNode(before));
-
-          const span = document.createElement('span');
-          span.className = HIGHLIGHT_CLASSES.full;
-          span.style.backgroundColor = group.colorFull || DEFAULT_COLORS.full;
-          span.style.color = group.textColorFull || DEFAULT_TEXT_COLOR;
-          span.textContent = text.slice(idx, idx + variantLen);
-          span.title = group.name;
-          frag.appendChild(span);
-
-          lastIndex = idx + variantLen;
-          regexLast.lastIndex = idx + variantLen;
-          highlighted = true;
-          break;
-        }
-      }
-
-      if (!highlighted) {
-        const before = text.slice(lastIndex, start);
-        if (before) frag.appendChild(document.createTextNode(before));
-
-        const span = document.createElement('span');
-        span.className = HIGHLIGHT_CLASSES.last;
-        span.style.backgroundColor = group.colorLast || DEFAULT_COLORS.last;
-        span.style.color = group.textColorLast || DEFAULT_TEXT_COLOR;
-        span.textContent = match[0];
-        span.title = group.name;
-        frag.appendChild(span);
-
-        lastIndex = end;
-      }
-    }
-
-    if (lastIndex) {
-      const after = text.slice(lastIndex);
-      if (after) frag.appendChild(document.createTextNode(after));
-      safeReplace(parent, node, frag);
-    }
-  });
-}
-
 function refreshHighlights() {
-  chrome.storage.local.get({ nameGroups: [], keywordGroups: [] }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES }, data => {
     clearHighlights();
 
     data.nameGroups.forEach(group => {
       const lastSet = new Set();
-      const lastMap = new Map();
+      const fullSet = new Set();
 
       group.names.forEach(n => {
         const l = (n.last || '').trim();
         const f = (n.first || '').trim();
         if (!l) return;
-        const lLower = l.toLowerCase();
-        lastSet.add(lLower);
-        if (!lastMap.has(lLower)) lastMap.set(lLower, new Set());
+        lastSet.add(l.toLowerCase());
         if (f) {
-          generateFullVariants(f, l).forEach(v => lastMap.get(lLower).add(v.toLowerCase()));
+          generateFullVariants(f, l, data.variantTemplates).forEach(v => fullSet.add(v.toLowerCase()));
         }
       });
 
-      const regexLast = buildRegex(lastSet);
+      const regexFull = buildRegex(fullSet, true);
+      if (regexFull) {
+        walkAndHighlight(
+          regexFull,
+          group.colorFull || DEFAULT_COLORS.full,
+          group.textColorFull || DEFAULT_TEXT_COLOR,
+          HIGHLIGHT_CLASSES.full,
+          group.name
+        );
+      }
+
+      const regexLast = buildRegex(lastSet, true);
       if (regexLast) {
-        walkAndHighlightNames(regexLast, lastMap, group);
+        walkAndHighlight(
+          regexLast,
+          group.colorLast || DEFAULT_COLORS.last,
+          group.textColorLast || DEFAULT_TEXT_COLOR,
+          HIGHLIGHT_CLASSES.last,
+          group.name
+        );
       }
     });
 

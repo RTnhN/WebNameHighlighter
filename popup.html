@@ -10,6 +10,20 @@
   <img src="icons/icon-48.png" alt="Web Name Highlighter Icon" />
   <h1>Web Name Highlighter</h1>
   </div>
+  <section id="variantWrapper">
+    <div id="variantSection" class="group">
+      <div class="group-header">
+        <button id="toggleVariant" class="toggle-group">-</button>
+        <span class="group-name">Name Variations</span>
+      </div>
+      <div class="group-body">
+        <p class="variant-desc">Use <code>{first}</code> for the full first name, <code>{last}</code> for the last name, and <code>{f}</code> for the first initial. Wildcards: <code>*</code> matches any number of non-space characters, <code>?</code> matches one.</p>
+        <div id="variantTemplates"></div>
+        <button id="addTemplate">Add Variation</button>
+        <button id="saveTemplates">Save Variations</button>
+      </div>
+    </div>
+  </section>
   <section>
     <h2>Name Groups</h2>
     <div id="groups"></div>

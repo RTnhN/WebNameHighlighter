@@ -91,3 +91,22 @@ section label {
   margin-bottom: 10px;
   gap: 10px;
 }
+
+.template-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.template-row .tpl {
+  flex: 1;
+}
+
+#variantSection .group-name {
+  font-weight: bold;
+}
+
+#variantSection .variant-desc {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
