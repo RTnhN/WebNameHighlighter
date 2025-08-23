@@ -12,7 +12,7 @@ A Chrome extension that highlights names and keywords on web pages.
 * **Name Management**: Add, edit, or delete names within each group.
 * **Keyword Highlighting**: Create keyword groups with individual highlight and text colors.
 * **Collapsible Groups**: Collapse or expand groups to reduce scrolling.
-* **Smart Name Variants**: Automatically generates variants (e.g., `j smith`, `j. smith`, `john smith`, `smith, j`, `smith, john`).
+* **Custom Name Variants**: Select from default templates or add your own, with wildcard support (e.g., `jo* smith`).
 * **Full-Page Highlighting**: Highlights all occurrences on the current page.
 * **Group Name on Hover**: Hovering a highlighted name shows its group name.
 * **Custom Colors**: Set highlight and text colors for last name and full name matches per group.

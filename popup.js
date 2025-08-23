@@ -1,5 +1,14 @@
 let currentNameGroups = [];
 let currentKeywordGroups = [];
+let currentVariantTemplates = [];
+
+const DEFAULT_VARIANT_TEMPLATES = [
+  '{first} {last}',
+  '{f} {last}',
+  '{f}. {last}',
+  '{last}, {first}',
+  '{last}, {f}'
+];
 
 function dedupeNames(arr) {
   const map = new Map();
@@ -284,8 +293,37 @@ function saveKeywordGroups() {
   renderKeywordGroups();
 }
 
+function renderVariantTemplates() {
+  const container = document.getElementById('variantTemplates');
+  container.innerHTML = '';
+  currentVariantTemplates.forEach((tpl, idx) => {
+    const div = document.createElement('div');
+    div.className = 'template-row';
+    div.innerHTML = `<input class="tpl" value="${tpl}"> <button class="delete">x</button>`;
+    div.querySelector('.tpl').addEventListener('input', e => {
+      currentVariantTemplates[idx] = e.target.value;
+    });
+    div.querySelector('.delete').addEventListener('click', () => {
+      currentVariantTemplates.splice(idx, 1);
+      renderVariantTemplates();
+    });
+    container.appendChild(div);
+  });
+}
+
+function addVariantTemplate() {
+  currentVariantTemplates.push('');
+  renderVariantTemplates();
+}
+
+function saveVariantTemplates() {
+  currentVariantTemplates = currentVariantTemplates.map(t => t.trim()).filter(t => t);
+  chrome.storage.local.set({ variantTemplates: currentVariantTemplates });
+  renderVariantTemplates();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ nameGroups: [], keywordGroups: [] }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES }, data => {
     currentNameGroups = data.nameGroups.map(g => ({
       name: g.name || '',
       names: g.names || [],
@@ -302,12 +340,16 @@ document.addEventListener('DOMContentLoaded', () => {
       textColor: g.textColor || '#000000',
       collapsed: g.collapsed || false
     }));
+    currentVariantTemplates = data.variantTemplates || DEFAULT_VARIANT_TEMPLATES.slice();
     renderGroups();
     renderKeywordGroups();
+    renderVariantTemplates();
   });
 
   document.getElementById('addGroup').addEventListener('click', addGroup);
   document.getElementById('saveGroups').addEventListener('click', saveGroups);
   document.getElementById('addKeywordGroup').addEventListener('click', addKeywordGroup);
   document.getElementById('saveKeywordGroups').addEventListener('click', saveKeywordGroups);
+  document.getElementById('addTemplate').addEventListener('click', addVariantTemplate);
+  document.getElementById('saveTemplates').addEventListener('click', saveVariantTemplates);
 });
