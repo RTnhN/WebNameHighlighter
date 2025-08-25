@@ -2,6 +2,7 @@ let currentNameGroups = [];
 let currentKeywordGroups = [];
 let currentVariantTemplates = [];
 let variantCollapsed = false;
+let highlightingEnabled = true;
 
 const DEFAULT_VARIANT_TEMPLATES = [
   '{first} {last}',
@@ -329,7 +330,7 @@ function saveVariantTemplates() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES, variantCollapsed: false }, data => {
+  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES, variantCollapsed: false, enabled: true }, data => {
     currentNameGroups = data.nameGroups.map(g => ({
       name: g.name || '',
       names: g.names || [],
@@ -348,6 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     currentVariantTemplates = data.variantTemplates || DEFAULT_VARIANT_TEMPLATES.slice();
     variantCollapsed = data.variantCollapsed || false;
+    highlightingEnabled = data.enabled;
+    const toggle = document.getElementById('toggleEnabled');
+    if (toggle) toggle.checked = highlightingEnabled;
     renderGroups();
     renderKeywordGroups();
     renderVariantTemplates();
@@ -364,4 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({ variantCollapsed });
     renderVariantTemplates();
   });
+  const enabledCheckbox = document.getElementById('toggleEnabled');
+  if (enabledCheckbox) {
+    enabledCheckbox.addEventListener('change', e => {
+      highlightingEnabled = e.target.checked;
+      chrome.storage.local.set({ enabled: highlightingEnabled });
+    });
+  }
 });
