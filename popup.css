@@ -110,3 +110,8 @@ section label {
   font-size: 0.9em;
   margin-bottom: 5px;
 }
+
+#toggleEnabledLabel {
+  margin-left: auto;
+  font-size: large;
+}

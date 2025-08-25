@@ -200,8 +200,9 @@ function walkAndHighlight(regex, bgColor, textColor, className, groupName) {
 }
 
 function refreshHighlights() {
-  chrome.storage.local.get({ nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES }, data => {
+  chrome.storage.local.get({ enabled: true, nameGroups: [], keywordGroups: [], variantTemplates: DEFAULT_VARIANT_TEMPLATES }, data => {
     clearHighlights();
+    if (!data.enabled) return;
 
     data.nameGroups.forEach(group => {
       const lastSet = new Set();
@@ -262,7 +263,7 @@ function refreshHighlights() {
 refreshHighlights();
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && (changes.nameGroups || changes.keywordGroups)) {
+  if (area === 'local' && (changes.nameGroups || changes.keywordGroups || changes.enabled)) {
     refreshHighlights();
   }
 });
